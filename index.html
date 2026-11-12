@@ -113,19 +113,13 @@ const P=[
 {id:'groq',name:'Groq',
  url:'https://api.groq.com/openai/v1/chat/completions',
  smart:'openai/gpt-oss-120b',fast:'openai/gpt-oss-20b'},
-{id:'cerebras',name:'Cerebras',
- url:'https://api.cerebras.ai/v1/chat/completions',
- smart:'llama-3.3-70b',fast:'llama3.1-8b'},
-{id:'mistral',name:'Mistral',
- url:'https://api.mistral.ai/v1/chat/completions',
- smart:'mistral-large-latest',fast:'mistral-small-latest'},
 {id:'openrouter',name:'OpenRouter',
  url:'https://openrouter.ai/api/v1/chat/completions',
  smart:'meta-llama/llama-3.3-70b-instruct:free',
  fast:'meta-llama/llama-3.3-70b-instruct:free'}];
 const ORD={
- smart:['groq','gemini','mistral','cerebras','openrouter'],
- fast:['groq','cerebras','gemini','mistral','openrouter']};
+ smart:['groq','gemini','openrouter'],
+ fast:['groq','gemini','openrouter']};
 const OLD=['https://feeds.bbci.co.uk/news/technology/rss.xml',
 'https://techcrunch.com/feed/',
 'https://www.sciencedaily.com/rss/top/science.xml'].join('\n');
