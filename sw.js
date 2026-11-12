@@ -1,4 +1,4 @@
-const C = 'ai-v4';
+const C = 'ai-v5;
 const F = [
   './',
   './index.html',
