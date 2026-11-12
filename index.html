@@ -58,6 +58,7 @@ small{color:var(--mut)}
 </style></head><body>
 <header><h1>My AI Assistant</h1>
 <button id="mode"></button>
+<button id="inst" hidden>Install</button>
 <button id="news">News</button>
 <button id="cfg">Settings</button></header>
 <div id="log" aria-live="polite"></div>
@@ -123,7 +124,7 @@ const P=[
  smart:'meta-llama/llama-3.3-70b-instruct:free',
  fast:'meta-llama/llama-3.3-70b-instruct:free'}];
 const ORD={
- smart:['gemini','mistral','groq','cerebras','openrouter'],
+ smart:['groq','gemini','mistral','cerebras','openrouter'],
  fast:['groq','cerebras','gemini','mistral','openrouter']};
 const DF=['https://feeds.bbci.co.uk/news/technology/rss.xml',
 'https://techcrunch.com/feed/',
@@ -212,30 +213,47 @@ async function why(r){
  if(typeof t!='string')t=JSON.stringify(t);
  return t.replace(/\s+/g,' ').slice(0,140);
 }
+const keysOf=id=>(S.keys[id]||'').split('\n')
+ .map(x=>x.trim()).filter(Boolean);
+async function call(p,k,model,msgs){
+ const c=new AbortController();
+ const t=setTimeout(()=>c.abort(),25000);
+ try{
+  return await fetch(p.url,{method:'POST',signal:c.signal,
+   headers:{'Content-Type':'application/json',
+    Authorization:'Bearer '+k},
+   body:JSON.stringify({model:model,messages:msgs})});
+ }finally{clearTimeout(t)}
+}
 async function ask(){
  const msgs=[{role:'system',content:SYS()},...H.slice(-20)];
  const errs=[];
- for(const p of ORD[S.mode].map(id=>P.find(x=>x.id==id))){
-  const k=S.keys[p.id];
-  if(!k||(cool[p.id]||0)>Date.now())continue;
-  const model=(S.mode=='fast'?S.fmodels[p.id]:S.models[p.id])
+ for(const id of ORD[S.mode]){
+  const p=P.find(x=>x.id==id);
+  const model=(S.mode=='fast'?S.fmodels[id]:S.models[id])
    ||p[S.mode];
-  try{
-   const r=await fetch(p.url,{method:'POST',
-    headers:{'Content-Type':'application/json',
-     Authorization:'Bearer '+k},
-    body:JSON.stringify({model:model,messages:msgs})});
-   if(!r.ok){
-    cool[p.id]=Date.now()+(r.status==429?90000:30000);
-    errs.push(`${p.name} (${model}): ${r.status} `+await why(r));
-    continue}
-   const j=await r.json();
-   const txt=j.choices&&j.choices[0].message.content;
-   if(!txt){errs.push(p.name+': empty reply');continue}
-   return{text:txt,by:p.name};
-  }catch(e){
-   cool[p.id]=Date.now()+30000;
-   errs.push(p.name+': network error')}
+  const ks=keysOf(id);
+  for(let n=0;n<ks.length;n++){
+   const ck=id+n;
+   if((cool[ck]||0)>Date.now())continue;
+   const tag=p.name+(ks.length>1?' #'+(n+1):'');
+   try{
+    const r=await call(p,ks[n],model,msgs);
+    if(!r.ok){
+     const st=r.status;
+     const w=st==429?300000:(st==401||st==403)?3600000:30000;
+     cool[ck]=Date.now()+w;
+     errs.push(`${tag} (${model}): ${st} `+await why(r));
+     continue}
+    const j=await r.json();
+    const txt=j.choices&&j.choices[0].message.content;
+    if(!txt){errs.push(tag+': empty reply');continue}
+    return{text:txt,by:tag};
+   }catch(e){
+    cool[ck]=Date.now()+30000;
+    errs.push(tag+': '+(e.name=='AbortError'
+     ?'too slow (25s)':'network error'))}
+  }
  }
  throw new Error(errs.length
   ?'All providers failed:\n'+errs.join('\n')
@@ -309,11 +327,19 @@ dm();
 $('#mode').onclick=()=>{
  S.mode=S.mode=='fast'?'smart':'fast';dm();save()};
 setInterval(()=>S.nt&&news(true),30*60*1000);
+// Install button
+let ip=null;
+addEventListener('beforeinstallprompt',e=>{
+ e.preventDefault();ip=e;$('#inst').hidden=false});
+$('#inst').onclick=async()=>{
+ if(!ip)return;ip.prompt();await ip.userChoice;
+ ip=null;$('#inst').hidden=true};
+addEventListener('appinstalled',()=>$('#inst').hidden=true);
 // Settings
 function drawKeys(){
- $('#keys').innerHTML=P.map(p=>`<label>${p.name} key</label>
-<input data-k="${p.id}" type="password" autocomplete="off"
- value="${esc(S.keys[p.id]||'')}">
+ $('#keys').innerHTML=P.map(p=>`<label>${p.name} keys <small>(one per line)</small></label>
+<textarea data-k="${p.id}" rows="2" autocomplete="off"
+ spellcheck="false">${esc(S.keys[p.id]||'')}</textarea>
 <input data-m="${p.id}" placeholder="Smart model: ${p.smart}"
  value="${esc(S.models[p.id]||'')}" style="margin-top:4px">
 <input data-f="${p.id}" placeholder="Fast model: ${p.fast}"
@@ -333,7 +359,8 @@ $('#close').onclick=()=>$('#dlg').close();
 $('#clr').onclick=()=>{
  H=[];save();$('#log').innerHTML='';$('#dlg').close()};
 $('#f').onsubmit=async()=>{
- const clean=v=>v.replace(/\s+/g,'');
+ const clean=v=>v.split('\n')
+  .map(x=>x.replace(/\s+/g,'')).filter(Boolean).join('\n');
  document.querySelectorAll('[data-k]').forEach(
   i=>S.keys[i.dataset.k]=clean(i.value));
  document.querySelectorAll('[data-m]').forEach(
