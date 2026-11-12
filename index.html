@@ -1,68 +1,145 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>My AI Assistant</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport"
+ content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>My AI Assistant</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#1b2340">
 <style>
-:root{--bg:#eef1f6;--card:#fff;--ink:#1b2340;--mut:#6b7390;--acc:#3b5bdb;--line:#d9deea}
-@media(prefers-color-scheme:dark){:root{--bg:#141829;--card:#1f2540;--ink:#e8ecff;--mut:#9aa3c7;--acc:#7b93ff;--line:#303860}}
-*{box-sizing:border-box}html,body{height:100%;margin:0}
-body{font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
-header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line)}
+:root{--bg:#eef1f6;--card:#fff;--ink:#1b2340;
+--mut:#6b7390;--acc:#3b5bdb;--line:#d9deea}
+@media(prefers-color-scheme:dark){
+:root{--bg:#141829;--card:#1f2540;--ink:#e8ecff;
+--mut:#9aa3c7;--acc:#7b93ff;--line:#303860}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:16px/1.5 system-ui,sans-serif;background:var(--bg);
+color:var(--ink);display:flex;flex-direction:column;
+padding-top:env(safe-area-inset-top)}
+header{display:flex;align-items:center;gap:8px;
+padding:10px 14px;border-bottom:1px solid var(--line)}
 header h1{font-size:18px;margin:0;flex:1}
-button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px}
+button{font:inherit;cursor:pointer;
+border:1px solid var(--line);background:var(--card);
+color:var(--ink);border-radius:10px;padding:8px 12px}
 button.p{background:var(--acc);border-color:var(--acc);color:#fff}
-button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-#log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
-.m{max-width:88%;padding:10px 13px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word}
+button:focus-visible,textarea:focus-visible,
+input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#log{flex:1;overflow-y:auto;padding:14px;display:flex;
+flex-direction:column;gap:10px}
+.m{max-width:88%;padding:10px 13px;border-radius:14px;
+white-space:pre-wrap;word-wrap:break-word}
 .u{align-self:flex-end;background:var(--ink);color:var(--bg)}
-.a{align-self:flex-start;background:var(--card);border:1px solid var(--line)}
+.a{align-self:flex-start;background:var(--card);
+border:1px solid var(--line)}
 .by{display:block;font-size:12px;color:var(--mut);margin-top:6px}
-.act{margin-top:8px;padding:8px;border:1px dashed var(--acc);border-radius:10px;font-size:14px}
+.act{margin-top:8px;padding:8px;border:1px dashed var(--acc);
+border-radius:10px;font-size:14px}
 .act button{margin-top:6px}
-#bar{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--card)}
-textarea{flex:1;resize:none;font:inherit;border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--bg);color:var(--ink);max-height:120px}
+#bar{display:flex;gap:8px;
+padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+border-top:1px solid var(--line);background:var(--card)}
+textarea{flex:1;resize:none;font:inherit;
+border:1px solid var(--line);border-radius:12px;
+padding:9px 12px;background:var(--bg);color:var(--ink);
+max-height:120px}
 #mic.on{background:#d6336c;border-color:#d6336c;color:#fff}
-dialog{width:min(520px,94vw);max-height:90vh;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);padding:16px}
+dialog{width:min(520px,94vw);max-height:90vh;
+border:1px solid var(--line);border-radius:16px;
+background:var(--card);color:var(--ink);padding:16px}
 dialog::backdrop{background:#0008}
 label{display:block;margin:12px 0 4px;font-weight:600;font-size:14px}
-dialog input,dialog textarea,dialog select{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+dialog input,dialog textarea,dialog select{width:100%;
+font:inherit;padding:8px 10px;border:1px solid var(--line);
+border-radius:8px;background:var(--bg);color:var(--ink)}
 small{color:var(--mut)}
 </style></head><body>
-<header><h1>My AI Assistant</h1><button id="mode"></button><button id="news">News</button><button id="cfg">Settings</button></header>
+<header><h1>My AI Assistant</h1>
+<button id="mode"></button>
+<button id="news">News</button>
+<button id="cfg">Settings</button></header>
 <div id="log" aria-live="polite"></div>
-<div id="bar"><button id="mic" aria-label="Speak">Mic</button><textarea id="in" rows="1" placeholder="Type or tap Mic and speak"></textarea><button class="p" id="send">Send</button></div>
+<div id="bar">
+<button id="mic" aria-label="Speak">Mic</button>
+<textarea id="in" rows="1"
+ placeholder="Type or tap Mic and speak"></textarea>
+<button class="p" id="send">Send</button></div>
 
 <dialog id="dlg"><form method="dialog" id="f">
 <h2 style="margin:0 0 4px">Settings</h2>
-<small>Keys stay on this device only. The assistant tries providers top to bottom and skips to the next one when a limit is reached.</small>
+<small>Keys stay on this device only. The assistant tries
+providers top to bottom and skips to the next one when a
+limit is reached.</small>
 <div id="keys"></div>
-<label>Contacts <small>(one per line: name=phone with country code, or name=messenger-username)</small></label>
-<textarea id="contacts" rows="4" placeholder="Rahim=8801712345678&#10;Karim=karim.fb"></textarea>
-<label>Backend URL <small>(Apps Script web app, enables auto-send and auto-post)</small></label><input id="api" placeholder="https://script.google.com/macros/s/.../exec"><label>Backend secret</label><input id="secret" type="password" autocomplete="off">
+<label>Contacts <small>(one per line: name=phone with
+country code, or name=messenger-username)</small></label>
+<textarea id="contacts" rows="4"
+ placeholder="Rahim=8801712345678&#10;Karim=karim.fb"></textarea>
+<label>Backend URL <small>(Apps Script web app, enables
+auto-send and auto-post)</small></label>
+<input id="api"
+ placeholder="https://script.google.com/macros/s/.../exec">
+<label>Backend secret</label>
+<input id="secret" type="password" autocomplete="off">
 <label>Voice language</label>
-<select id="lang"><option value="bn-BD">Bengali (bn-BD)</option><option value="en-US">English (en-US)</option></select>
-<label><input type="checkbox" id="speak" style="width:auto"> Read answers aloud</label>
-<label><input type="checkbox" id="nt" style="width:auto"> News notifications (every 30 min while app is open)</label>
+<select id="lang">
+<option value="bn-BD">Bengali (bn-BD)</option>
+<option value="en-US">English (en-US)</option></select>
+<label><input type="checkbox" id="speak"
+ style="width:auto"> Read answers aloud</label>
+<label><input type="checkbox" id="nt" style="width:auto">
+ News notifications (every 30 min while app is open)</label>
 <label>News feeds <small>(one RSS URL per line)</small></label>
 <textarea id="feeds" rows="3"></textarea>
-<div style="display:flex;gap:8px;margin-top:14px"><button class="p" value="ok" id="save">Save</button><button value="x" type="button" id="close">Close</button><button type="button" id="clr" style="margin-left:auto">Clear chat</button></div>
+<div style="display:flex;gap:8px;margin-top:14px">
+<button class="p" value="ok" id="save">Save</button>
+<button value="x" type="button" id="close">Close</button>
+<button type="button" id="clr"
+ style="margin-left:auto">Clear chat</button></div>
 </form></dialog>
 
 <script>
-const $=s=>document.querySelector(s),esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const $=s=>document.querySelector(s);
+const esc=t=>t.replace(/[&<>]/g,
+ c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const GEM='https://generativelanguage.googleapis.com'
+ +'/v1beta/openai/chat/completions';
 const P=[
-{id:'gemini',name:'Google Gemini',url:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',smart:'gemini-2.5-flash',fast:'gemini-2.0-flash'},
-{id:'groq',name:'Groq',url:'https://api.groq.com/openai/v1/chat/completions',smart:'llama-3.3-70b-versatile',fast:'llama-3.1-8b-instant'},
-{id:'cerebras',name:'Cerebras',url:'https://api.cerebras.ai/v1/chat/completions',smart:'llama-3.3-70b',fast:'llama3.1-8b'},
-{id:'mistral',name:'Mistral',url:'https://api.mistral.ai/v1/chat/completions',smart:'mistral-large-latest',fast:'mistral-small-latest'},
-{id:'openrouter',name:'OpenRouter',url:'https://openrouter.ai/api/v1/chat/completions',smart:'meta-llama/llama-3.3-70b-instruct:free',fast:'meta-llama/llama-3.3-70b-instruct:free'}];
-const ORD={smart:['gemini','mistral','groq','cerebras','openrouter'],fast:['groq','cerebras','gemini','mistral','openrouter']};
-const DF=['https://feeds.bbci.co.uk/news/technology/rss.xml','https://techcrunch.com/feed/','https://www.sciencedaily.com/rss/top/science.xml'];
-const ld=(k,d)=>{try{return JSON.parse(localStorage[k])}catch{return d}};
-let S=Object.assign({api:'',secret:'',keys:{},models:{},fmodels:{},mode:'fast',contacts:'',lang:'bn-BD',speak:true,nt:false,feeds:DF.join('\n')},ld('ai_s',{}));
+{id:'gemini',name:'Google Gemini',url:GEM,
+ smart:'gemini-3.8-flash',fast:'gemini-3.5-flash-lite'},
+{id:'groq',name:'Groq',
+ url:'https://api.groq.com/openai/v1/chat/completions',
+ smart:'openai/gpt-oss-120b',fast:'openai/gpt-oss-20b'},
+{id:'cerebras',name:'Cerebras',
+ url:'https://api.cerebras.ai/v1/chat/completions',
+ smart:'llama-3.3-70b',fast:'llama3.1-8b'},
+{id:'mistral',name:'Mistral',
+ url:'https://api.mistral.ai/v1/chat/completions',
+ smart:'mistral-large-latest',fast:'mistral-small-latest'},
+{id:'openrouter',name:'OpenRouter',
+ url:'https://openrouter.ai/api/v1/chat/completions',
+ smart:'meta-llama/llama-3.3-70b-instruct:free',
+ fast:'meta-llama/llama-3.3-70b-instruct:free'}];
+const ORD={
+ smart:['gemini','mistral','groq','cerebras','openrouter'],
+ fast:['groq','cerebras','gemini','mistral','openrouter']};
+const DF=['https://feeds.bbci.co.uk/news/technology/rss.xml',
+'https://techcrunch.com/feed/',
+'https://www.sciencedaily.com/rss/top/science.xml'];
+const ld=(k,d)=>{try{return JSON.parse(localStorage[k])}
+ catch{return d}};
+let S=Object.assign({api:'',secret:'',keys:{},models:{},
+ fmodels:{},mode:'fast',contacts:'',lang:'bn-BD',speak:true,
+ nt:false,feeds:DF.join('\n')},ld('ai_s',{}));
 let H=ld('ai_h',[]),cool={};
-const save=()=>{localStorage.ai_s=JSON.stringify(S);localStorage.ai_h=JSON.stringify(H.slice(-60))};
-const contacts=()=>Object.fromEntries(S.contacts.split('\n').map(l=>l.split('=').map(x=>x.trim())).filter(x=>x[1]).map(x=>[x[0].toLowerCase(),x[1]]));
+const save=()=>{
+ localStorage.ai_s=JSON.stringify(S);
+ localStorage.ai_h=JSON.stringify(H.slice(-60))};
+const contacts=()=>Object.fromEntries(
+ S.contacts.split('\n').map(l=>l.split('=').map(x=>x.trim()))
+ .filter(x=>x[1]).map(x=>[x[0].toLowerCase(),x[1]]));
 const SYS=()=>`You are the user's personal assistant. The user speaks Bengali or English; always reply in the language of their last message. Be concise and helpful. You can write assignments, posts and messages.
 When the user asks you to send a message or publish a Facebook post, write the final text and then add ONE last line exactly like:
 ACTION: {"type":"send","app":"whatsapp|messenger|telegram|sms","to":"contact name","text":"message text"}
@@ -71,98 +148,214 @@ ACTION: {"type":"post","text":"post text"}
 Known contacts: ${Object.keys(contacts()).join(', ')||'none'}. Never add ACTION unless the user asked to send or post.`;
 
 function add(role,text,by){
- const d=document.createElement('div');d.className='m '+(role=='user'?'u':'a');
- let a=null;const m=text.match(/\n?ACTION:\s*(\{[\s\S]*\})\s*$/);
- if(m&&role!='user'){try{a=JSON.parse(m[1]);text=text.replace(m[0],'')}catch{}}
+ const d=document.createElement('div');
+ d.className='m '+(role=='user'?'u':'a');
+ let a=null;
+ const m=text.match(/\n?ACTION:\s*(\{[\s\S]*\})\s*$/);
+ if(m&&role!='user'){
+  try{a=JSON.parse(m[1]);text=text.replace(m[0],'')}catch{}}
  d.innerHTML=esc(text);
  if(by)d.innerHTML+=`<span class="by">via ${esc(by)}</span>`;
- if(a){const b=document.createElement('div');b.className='act';
-  b.innerHTML=a.type=='post'?`<b>Ready to post on Facebook</b><br>${esc(a.text)}`:`<b>Ready to send on ${esc(a.app)} to ${esc(a.to)}</b><br>${esc(a.text)}`;
-  const btn=document.createElement('button');btn.className='p';btn.textContent=(S.api&&S.secret)?'Send now':(a.type=='post'?'Open Facebook':'Open '+a.app);
+ if(a){
+  const b=document.createElement('div');b.className='act';
+  b.innerHTML=a.type=='post'
+   ?`<b>Ready to post on Facebook</b><br>${esc(a.text)}`
+   :`<b>Ready to send on ${esc(a.app)} to ${esc(a.to)}</b><br>${esc(a.text)}`;
+  const btn=document.createElement('button');
+  btn.className='p';
+  btn.textContent=(S.api&&S.secret)?'Send now'
+   :(a.type=='post'?'Open Facebook':'Open '+a.app);
   btn.onclick=()=>run(a);b.append(btn);d.append(b)}
  $('#log').append(d);$('#log').scrollTop=1e9;return text;
 }
 async function remote(a){
  const c=a.type=='post'?'':contacts()[(a.to||'').toLowerCase()];
- if(a.type!='post'&&a.app!='telegram'&&!c)return add('assistant',`No contact named "${a.to}". Add it in Settings > Contacts.`);
- try{const r=await fetch(S.api,{method:'POST',body:JSON.stringify({secret:S.secret,type:a.type=='post'?'post':a.app,to:c,text:a.text})});
-  const j=await r.json();add('assistant',j.ok?'Done. Sent.':'Failed: '+(j.error||j.status||'unknown error'))}
- catch(e){add('assistant','Could not reach the backend. Check the URL in Settings.')}
+ if(a.type!='post'&&a.app!='telegram'&&!c)
+  return add('assistant',
+   `No contact named "${a.to}". Add it in Settings > Contacts.`);
+ try{
+  const r=await fetch(S.api,{method:'POST',body:JSON.stringify({
+   secret:S.secret,type:a.type=='post'?'post':a.app,
+   to:c,text:a.text})});
+  const j=await r.json();
+  add('assistant',j.ok?'Done. Sent.'
+   :'Failed: '+(j.error||j.status||'unknown error'))}
+ catch(e){
+  add('assistant',
+   'Could not reach the backend. Check the URL in Settings.')}
 }
 function run(a){
  if(S.api&&S.secret)return remote(a);
- if(a.type=='post'){navigator.clipboard?.writeText(a.text);open('https://www.facebook.com/','_blank');return add('assistant','Post text copied. Paste it into the new post box.')}
+ if(a.type=='post'){
+  navigator.clipboard?.writeText(a.text);
+  open('https://www.facebook.com/','_blank');
+  return add('assistant',
+   'Post text copied. Paste it into the new post box.')}
  const c=contacts()[(a.to||'').toLowerCase()];
- if(!c)return add('assistant',`No contact named "${a.to}". Add it in Settings > Contacts.`);
+ if(!c)return add('assistant',
+  `No contact named "${a.to}". Add it in Settings > Contacts.`);
  const q=encodeURIComponent(a.text);
- if(a.app=='whatsapp')open(`https://wa.me/${c.replace(/\D/g,'')}?text=${q}`,'_blank');
+ if(a.app=='whatsapp')
+  open(`https://wa.me/${c.replace(/\D/g,'')}?text=${q}`,'_blank');
  else if(a.app=='sms')location.href=`sms:${c}?body=${q}`;
- else{navigator.clipboard?.writeText(a.text);open(`https://m.me/${c}`,'_blank');add('assistant','Message copied. Paste it in the chat and send.')}
+ else{
+  navigator.clipboard?.writeText(a.text);
+  open(`https://m.me/${c}`,'_blank');
+  add('assistant','Message copied. Paste it in the chat and send.')}
+}
+async function why(r){
+ let t='';
+ try{t=await r.text();const j=JSON.parse(t);
+  const e=Array.isArray(j)?j[0]:j;
+  t=(e.error&&(e.error.message||e.error))||e.message||t}
+ catch{}
+ if(typeof t!='string')t=JSON.stringify(t);
+ return t.replace(/\s+/g,' ').slice(0,140);
 }
 async function ask(){
- const msgs=[{role:'system',content:SYS()},...H.slice(-20)];let err='No API key set. Open Settings and add at least one key.';
+ const msgs=[{role:'system',content:SYS()},...H.slice(-20)];
+ const errs=[];
  for(const p of ORD[S.mode].map(id=>P.find(x=>x.id==id))){
-  const k=S.keys[p.id];if(!k||(cool[p.id]||0)>Date.now())continue;
+  const k=S.keys[p.id];
+  if(!k||(cool[p.id]||0)>Date.now())continue;
+  const model=(S.mode=='fast'?S.fmodels[p.id]:S.models[p.id])
+   ||p[S.mode];
   try{
-   const r=await fetch(p.url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+k},body:JSON.stringify({model:(S.mode=='fast'?S.fmodels[p.id]:S.models[p.id])||p[S.mode],messages:msgs})});
-   if(!r.ok){cool[p.id]=Date.now()+(r.status==429?90000:30000);err=p.name+': error '+r.status;continue}
-   const j=await r.json();return{text:j.choices[0].message.content,by:p.name};
-  }catch(e){cool[p.id]=Date.now()+30000;err=p.name+': network error'}
+   const r=await fetch(p.url,{method:'POST',
+    headers:{'Content-Type':'application/json',
+     Authorization:'Bearer '+k},
+    body:JSON.stringify({model:model,messages:msgs})});
+   if(!r.ok){
+    cool[p.id]=Date.now()+(r.status==429?90000:30000);
+    errs.push(`${p.name} (${model}): ${r.status} `+await why(r));
+    continue}
+   const j=await r.json();
+   const txt=j.choices&&j.choices[0].message.content;
+   if(!txt){errs.push(p.name+': empty reply');continue}
+   return{text:txt,by:p.name};
+  }catch(e){
+   cool[p.id]=Date.now()+30000;
+   errs.push(p.name+': network error')}
  }
- throw new Error('All providers failed. '+err);
+ throw new Error(errs.length
+  ?'All providers failed:\n'+errs.join('\n')
+  :'No API key set. Open Settings and add at least one key.');
 }
 async function send(t){
- t=(t||$('#in').value).trim();if(!t)return;$('#in').value='';
+ t=(t||$('#in').value).trim();if(!t)return;
+ $('#in').value='';
  add('user',t);H.push({role:'user',content:t});
- const w=document.createElement('div');w.className='m a';w.textContent='Thinking...';$('#log').append(w);
- try{const r=await ask();w.remove();H.push({role:'assistant',content:r.text});const clean=add('assistant',r.text,r.by);speak(clean)}
+ const w=document.createElement('div');
+ w.className='m a';w.textContent='Thinking...';
+ $('#log').append(w);
+ try{
+  const r=await ask();w.remove();
+  H.push({role:'assistant',content:r.text});
+  const clean=add('assistant',r.text,r.by);speak(clean)}
  catch(e){w.remove();H.pop();add('assistant',e.message)}
  save();
 }
-function speak(t){if(!S.speak||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.slice(0,600));u.lang=S.lang;speechSynthesis.speak(u)}
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
+function speak(t){
+ if(!S.speak||!window.speechSynthesis)return;
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(t.slice(0,600));
+ u.lang=S.lang;speechSynthesis.speak(u)}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec;
 $('#mic').onclick=()=>{
- if(!SR)return add('assistant','Voice input is not supported in this browser. Use Chrome.');
+ if(!SR)return add('assistant',
+  'Voice input is not supported in this browser. Use Chrome.');
  if(rec){rec.stop();return}
  rec=new SR();rec.lang=S.lang;rec.interimResults=false;
  rec.onstart=()=>$('#mic').classList.add('on');
  rec.onresult=e=>send(e.results[0][0].transcript);
- rec.onend=rec.onerror=()=>{$('#mic').classList.remove('on');rec=null};
+ rec.onend=rec.onerror=()=>{
+  $('#mic').classList.remove('on');rec=null};
  speechSynthesis?.cancel();rec.start();
 };
 $('#send').onclick=()=>send();
-$('#in').onkeydown=e=>{if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();send()}};
+$('#in').onkeydown=e=>{
+ if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();send()}};
 // News
 let seen=new Set(ld('ai_seen',[]));
 async function news(notify){
  const out=[];
- for(const f of S.feeds.split('\n').map(x=>x.trim()).filter(Boolean)){
-  try{const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(f));const j=await r.json();
-   for(const i of (j.items||[]).slice(0,4))out.push(i)}catch{}
+ const R='https://api.rss2json.com/v1/api.json?rss_url=';
+ for(const f of S.feeds.split('\n').map(x=>x.trim())
+  .filter(Boolean)){
+  try{
+   const r=await fetch(R+encodeURIComponent(f));
+   const j=await r.json();
+   for(const i of (j.items||[]).slice(0,4))out.push(i)}
+  catch{}
  }
- const fresh=out.filter(i=>!seen.has(i.link));out.forEach(i=>seen.add(i.link));
+ const fresh=out.filter(i=>!seen.has(i.link));
+ out.forEach(i=>seen.add(i.link));
  localStorage.ai_seen=JSON.stringify([...seen].slice(-400));
- if(notify){if(Notification.permission=='granted')fresh.slice(0,3).forEach(i=>navigator.serviceWorker.ready.then(r=>r.showNotification('New: '+i.title,{body:i.link,icon:'icon.svg'})))}
- else add('assistant',out.length?out.slice(0,8).map(i=>'• '+i.title+'\n'+i.link).join('\n\n'):'Could not load news right now.');
+ if(notify){
+  if(Notification.permission=='granted')
+   fresh.slice(0,3).forEach(i=>
+    navigator.serviceWorker.ready.then(r=>
+     r.showNotification('New: '+i.title,
+      {body:i.link,icon:'icon-192.png'})))}
+ else add('assistant',out.length
+  ?out.slice(0,8).map(i=>'• '+i.title+'\n'+i.link).join('\n\n')
+  :'Could not load news right now.');
 }
 $('#news').onclick=()=>news(false);
-const dm=()=>$('#mode').textContent=S.mode=='fast'?'Fast':'Smart';dm();
-$('#mode').onclick=()=>{S.mode=S.mode=='fast'?'smart':'fast';dm();save()};
+const dm=()=>$('#mode').textContent=
+ S.mode=='fast'?'Fast':'Smart';
+dm();
+$('#mode').onclick=()=>{
+ S.mode=S.mode=='fast'?'smart':'fast';dm();save()};
 setInterval(()=>S.nt&&news(true),30*60*1000);
 // Settings
-function drawKeys(){$('#keys').innerHTML=P.map(p=>`<label>${p.name} key</label><input data-k="${p.id}" type="password" autocomplete="off" value="${esc(S.keys[p.id]||'')}"><input data-m="${p.id}" placeholder="Smart model: ${p.smart}" value="${esc(S.models[p.id]||'')}" style="margin-top:4px"><input data-f="${p.id}" placeholder="Fast model: ${p.fast}" value="${esc(S.fmodels[p.id]||'')}" style="margin-top:4px">`).join('')}
-$('#cfg').onclick=()=>{drawKeys();$('#contacts').value=S.contacts;$('#api').value=S.api;$('#secret').value=S.secret;$('#lang').value=S.lang;$('#speak').checked=S.speak;$('#nt').checked=S.nt;$('#feeds').value=S.feeds;$('#dlg').showModal()};
+function drawKeys(){
+ $('#keys').innerHTML=P.map(p=>`<label>${p.name} key</label>
+<input data-k="${p.id}" type="password" autocomplete="off"
+ value="${esc(S.keys[p.id]||'')}">
+<input data-m="${p.id}" placeholder="Smart model: ${p.smart}"
+ value="${esc(S.models[p.id]||'')}" style="margin-top:4px">
+<input data-f="${p.id}" placeholder="Fast model: ${p.fast}"
+ value="${esc(S.fmodels[p.id]||'')}" style="margin-top:4px">`
+ ).join('')}
+$('#cfg').onclick=()=>{
+ drawKeys();
+ $('#contacts').value=S.contacts;
+ $('#api').value=S.api;
+ $('#secret').value=S.secret;
+ $('#lang').value=S.lang;
+ $('#speak').checked=S.speak;
+ $('#nt').checked=S.nt;
+ $('#feeds').value=S.feeds;
+ $('#dlg').showModal()};
 $('#close').onclick=()=>$('#dlg').close();
-$('#clr').onclick=()=>{H=[];save();$('#log').innerHTML='';$('#dlg').close()};
+$('#clr').onclick=()=>{
+ H=[];save();$('#log').innerHTML='';$('#dlg').close()};
 $('#f').onsubmit=async()=>{
- document.querySelectorAll('[data-k]').forEach(i=>S.keys[i.dataset.k]=i.value.trim());
- document.querySelectorAll('[data-m]').forEach(i=>S.models[i.dataset.m]=i.value.trim());
- document.querySelectorAll('[data-f]').forEach(i=>S.fmodels[i.dataset.f]=i.value.trim());
- S.api=$('#api').value.trim();S.secret=$('#secret').value.trim();S.contacts=$('#contacts').value;S.lang=$('#lang').value;S.speak=$('#speak').checked;S.nt=$('#nt').checked;S.feeds=$('#feeds').value;
- if(S.nt&&Notification.permission=='default')await Notification.requestPermission();
+ const clean=v=>v.replace(/\s+/g,'');
+ document.querySelectorAll('[data-k]').forEach(
+  i=>S.keys[i.dataset.k]=clean(i.value));
+ document.querySelectorAll('[data-m]').forEach(
+  i=>S.models[i.dataset.m]=i.value.trim());
+ document.querySelectorAll('[data-f]').forEach(
+  i=>S.fmodels[i.dataset.f]=i.value.trim());
+ S.api=$('#api').value.trim();
+ S.secret=$('#secret').value.trim();
+ S.contacts=$('#contacts').value;
+ S.lang=$('#lang').value;
+ S.speak=$('#speak').checked;
+ S.nt=$('#nt').checked;
+ S.feeds=$('#feeds').value;
  save();
+ cool={};
+ if(S.nt&&Notification.permission=='default')
+  await Notification.requestPermission();
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+if('serviceWorker'in navigator)
+ navigator.serviceWorker.register('sw.js');
 H.slice(-10).forEach(m=>add(m.role,m.content));
-if(!H.length)add('assistant','Hello! Add an API key in Settings, then type or tap Mic and talk to me in Bengali or English.');
+if(!H.length)add('assistant',
+ 'Hello! Add an API key in Settings, then type or tap Mic '
+ +'and talk to me in Bengali or English.');
 </script></body></html>
