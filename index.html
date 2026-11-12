@@ -126,14 +126,19 @@ const P=[
 const ORD={
  smart:['groq','gemini','mistral','cerebras','openrouter'],
  fast:['groq','cerebras','gemini','mistral','openrouter']};
-const DF=['https://feeds.bbci.co.uk/news/technology/rss.xml',
+const OLD=['https://feeds.bbci.co.uk/news/technology/rss.xml',
 'https://techcrunch.com/feed/',
-'https://www.sciencedaily.com/rss/top/science.xml'];
+'https://www.sciencedaily.com/rss/top/science.xml'].join('\n');
+const DF=['https://feeds.bbci.co.uk/bengali/rss.xml',
+'https://www.prothomalo.com/feed',
+'https://feeds.bbci.co.uk/news/technology/rss.xml',
+'https://techcrunch.com/feed/'];
 const ld=(k,d)=>{try{return JSON.parse(localStorage[k])}
  catch{return d}};
 let S=Object.assign({api:'',secret:'',keys:{},models:{},
  fmodels:{},mode:'fast',contacts:'',lang:'bn-BD',speak:true,
  nt:false,feeds:DF.join('\n')},ld('ai_s',{}));
+if(S.feeds==OLD)S.feeds=DF.join('\n');
 let H=ld('ai_h',[]),cool={};
 const save=()=>{
  localStorage.ai_s=JSON.stringify(S);
@@ -225,8 +230,8 @@ async function call(p,k,model,msgs){
    body:JSON.stringify({model:model,messages:msgs})});
  }finally{clearTimeout(t)}
 }
-async function ask(){
- const msgs=[{role:'system',content:SYS()},...H.slice(-20)];
+async function ask(over){
+ const msgs=over||[{role:'system',content:SYS()},...H.slice(-20)];
  const errs=[];
  for(const id of ORD[S.mode]){
   const p=P.find(x=>x.id==id);
@@ -296,29 +301,48 @@ $('#in').onkeydown=e=>{
  if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();send()}};
 // News
 let seen=new Set(ld('ai_seen',[]));
+const bn=t=>/[\u0980-\u09FF]/.test(t);
+async function toBn(items){
+ const need=items.filter(i=>!bn(i.title));
+ if(!need.length)return;
+ try{
+  const q='Translate these news headlines to simple Bengali. '
+   +'Return ONLY a JSON array of strings, same order:\n'
+   +JSON.stringify(need.map(i=>i.title));
+  const r=await ask([{role:'user',content:q}]);
+  const a=JSON.parse(r.text.replace(/```json|```/g,'').trim());
+  if(a.length==need.length)need.forEach((i,n)=>i.title=a[n]);
+ }catch{}
+}
 async function news(notify){
- const out=[];
+ let out=[];
  const R='https://api.rss2json.com/v1/api.json?rss_url=';
- for(const f of S.feeds.split('\n').map(x=>x.trim())
-  .filter(Boolean)){
-  try{
-   const r=await fetch(R+encodeURIComponent(f));
-   const j=await r.json();
-   for(const i of (j.items||[]).slice(0,4))out.push(i)}
-  catch{}
- }
+ const fs=S.feeds.split('\n').map(x=>x.trim()).filter(Boolean);
+ const rs=await Promise.all(fs.map(f=>fetch(R+encodeURIComponent(f))
+  .then(r=>r.json()).catch(()=>({}))));
+ rs.forEach(j=>(j.items||[]).slice(0,5).forEach(i=>out.push(i)));
+ out.sort((x,y)=>String(y.pubDate).localeCompare(String(x.pubDate)));
  const fresh=out.filter(i=>!seen.has(i.link));
  out.forEach(i=>seen.add(i.link));
  localStorage.ai_seen=JSON.stringify([...seen].slice(-400));
  if(notify){
-  if(Notification.permission=='granted')
-   fresh.slice(0,3).forEach(i=>
-    navigator.serviceWorker.ready.then(r=>
-     r.showNotification('New: '+i.title,
-      {body:i.link,icon:'icon-192.png'})))}
- else add('assistant',out.length
-  ?out.slice(0,8).map(i=>'• '+i.title+'\n'+i.link).join('\n\n')
-  :'Could not load news right now.');
+  const f=fresh.slice(0,3);
+  await toBn(f);
+  if(Notification.permission=='granted')f.forEach(i=>
+   navigator.serviceWorker.ready.then(r=>
+    r.showNotification(i.title,
+     {body:i.link,icon:'icon-192.png'})));
+  return}
+ if(!out.length)return add('assistant',
+  'Could not load news right now.');
+ const w=document.createElement('div');
+ w.className='m a';w.textContent='Loading news...';
+ $('#log').append(w);
+ const top=out.slice(0,8);
+ await toBn(top);
+ w.remove();
+ add('assistant',top.map(i=>'• '+i.title+'\n'+i.link)
+  .join('\n\n'));
 }
 $('#news').onclick=()=>news(false);
 const dm=()=>$('#mode').textContent=
