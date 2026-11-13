@@ -40,8 +40,8 @@ small{color:var(--mut)}
 <label>Contacts <small>(one per line: name=phone with country code, or name=messenger-username)</small></label>
 <textarea id="contacts" rows="4" placeholder="Rahim=8801712345678&#10;Karim=karim.fb"></textarea>
 <label>MacroDroid webhook URL <small>(auto-sends WhatsApp from your phone)</small></label><input id="md" placeholder="https://trigger.macrodroid.com/.../wa">
-<label>MacroDroid password <small>(same as in your macro check)</small></label><input id="mdkey" type="password" autocomplete="off">
-<label>Backend URL <small>(Apps Script web app, enables auto-send and auto-post)</small></label><input id="api" placeholder="https://script.google.com/macros/s/.../exec"><label>Backend secret</label><input id="secret" type="password" autocomplete="off">
+<label>MacroDroid password <small>(same as in your macro check)</small></label><input id="mdkey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" name="x" style="-webkit-text-security:disc">
+<label>Backend URL <small>(Apps Script web app, enables auto-send and auto-post)</small></label><input id="api" placeholder="https://script.google.com/macros/s/.../exec"><label>Backend secret</label><input id="secret" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" name="x" style="-webkit-text-security:disc">
 <label><input type="checkbox" id="auto" style="width:auto"> Auto-send after 4 seconds (tap Cancel to stop)</label>
 <label>Voice language</label>
 <select id="lang"><option value="bn-BD">Bengali (bn-BD)</option><option value="en-US">English (en-US)</option></select>
@@ -160,12 +160,18 @@ async function news(notify){
  if(notify){if(Notification.permission=='granted')fresh.slice(0,3).forEach(i=>navigator.serviceWorker.ready.then(r=>r.showNotification('New: '+i.title,{body:i.link,icon:'icon.svg'})))}
  else add('assistant',out.length?out.slice(0,8).map(i=>'• '+i.title+'\n'+i.link).join('\n\n'):'Could not load news right now.');
 }
-$('#news').onclick=()=>news(false);
+$('#news').onclick=async()=>{
+ if(!(S.api&&S.secret))return news(false);
+ const w=document.createElement('div');w.className='m a';w.textContent='Getting news in Bengali...';$('#log').append(w);
+ try{const r=await fetch(S.api,{method:'POST',body:JSON.stringify({secret:S.secret,type:'news',n:3})});const j=await r.json();w.remove();
+  if(!j.ok)throw 0;j.items.forEach(i=>add('assistant',i.text+'\n\n'+i.link))}
+ catch(e){w.remove();news(false)}
+};
 const dm=()=>$('#mode').textContent=S.mode=='fast'?'Fast':'Smart';dm();
 $('#mode').onclick=()=>{S.mode=S.mode=='fast'?'smart':'fast';dm();save()};
 setInterval(()=>S.nt&&news(true),30*60*1000);
 // Settings
-function drawKeys(){$('#keys').innerHTML=P.map(p=>`<label>${p.name} key</label><input data-k="${p.id}" type="password" autocomplete="off" value="${esc(S.keys[p.id]||'')}"><input data-m="${p.id}" placeholder="Smart model: ${p.smart}" value="${esc(S.models[p.id]||'')}" style="margin-top:4px"><input data-f="${p.id}" placeholder="Fast model: ${p.fast}" value="${esc(S.fmodels[p.id]||'')}" style="margin-top:4px">`).join('')}
+function drawKeys(){$('#keys').innerHTML=P.map(p=>`<label>${p.name} key</label><input data-k="${p.id}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" name="x" style="-webkit-text-security:disc" value="${esc(S.keys[p.id]||'')}"><input data-m="${p.id}" placeholder="Smart model: ${p.smart}" value="${esc(S.models[p.id]||'')}" style="margin-top:4px"><input data-f="${p.id}" placeholder="Fast model: ${p.fast}" value="${esc(S.fmodels[p.id]||'')}" style="margin-top:4px">`).join('')}
 $('#cfg').onclick=()=>{drawKeys();$('#contacts').value=S.contacts;$('#md').value=S.md;$('#auto').checked=S.auto;$('#mdkey').value=S.mdkey;$('#api').value=S.api;$('#secret').value=S.secret;$('#lang').value=S.lang;$('#speak').checked=S.speak;$('#nt').checked=S.nt;$('#feeds').value=S.feeds;$('#dlg').showModal()};
 $('#close').onclick=()=>$('#dlg').close();
 $('#clr').onclick=()=>{H=[];save();$('#log').innerHTML='';$('#dlg').close()};
