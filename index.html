@@ -42,6 +42,7 @@ small{color:var(--mut)}
 <label>MacroDroid webhook URL <small>(auto-sends WhatsApp from your phone)</small></label><input id="md" placeholder="https://trigger.macrodroid.com/.../wa">
 <label>MacroDroid password <small>(same as in your macro check)</small></label><input id="mdkey" type="password" autocomplete="off">
 <label>Backend URL <small>(Apps Script web app, enables auto-send and auto-post)</small></label><input id="api" placeholder="https://script.google.com/macros/s/.../exec"><label>Backend secret</label><input id="secret" type="password" autocomplete="off">
+<label><input type="checkbox" id="auto" style="width:auto"> Auto-send after 4 seconds (tap Cancel to stop)</label>
 <label>Voice language</label>
 <select id="lang"><option value="bn-BD">Bengali (bn-BD)</option><option value="en-US">English (en-US)</option></select>
 <label><input type="checkbox" id="speak" style="width:auto"> Read answers aloud</label>
@@ -62,7 +63,7 @@ const P=[
 const ORD={smart:['gemini','mistral','groq','cerebras','openrouter'],fast:['groq','cerebras','gemini','mistral','openrouter']};
 const DF=['https://feeds.bbci.co.uk/news/technology/rss.xml','https://techcrunch.com/feed/','https://www.sciencedaily.com/rss/top/science.xml'];
 const ld=(k,d)=>{try{return JSON.parse(localStorage[k])}catch{return d}};
-let S=Object.assign({md:'',mdkey:'',api:'',secret:'',keys:{},models:{},fmodels:{},mode:'fast',contacts:'',lang:'bn-BD',speak:true,nt:false,feeds:DF.join('\n')},ld('ai_s',{}));
+let S=Object.assign({auto:true,md:'',mdkey:'',api:'',secret:'',keys:{},models:{},fmodels:{},mode:'fast',contacts:'',lang:'bn-BD',speak:true,nt:false,feeds:DF.join('\n')},ld('ai_s',{}));
 let H=ld('ai_h',[]),cool={};
 const save=()=>{localStorage.ai_s=JSON.stringify(S);localStorage.ai_h=JSON.stringify(H.slice(-60))};
 const contacts=()=>Object.fromEntries(S.contacts.split('\n').map(l=>l.split('=').map(x=>x.trim())).filter(x=>x[1]).map(x=>[x[0].toLowerCase(),x[1]]));
@@ -73,7 +74,8 @@ or
 ACTION: {"type":"post","text":"post text"}
 Known contacts: ${Object.keys(contacts()).join(', ')||'none'}. Never add ACTION unless the user asked to send or post.`;
 
-function add(role,text,by){
+const canAuto=a=>(a.type=='post'&&S.api&&S.secret)||(S.md&&a.app=='whatsapp');
+function add(role,text,by,noauto){
  const d=document.createElement('div');d.className='m '+(role=='user'?'u':'a');
  let a=null;const m=text.match(/\n?ACTION:\s*(\{[\s\S]*\})\s*$/);
  if(m&&role!='user'){try{a=JSON.parse(m[1]);text=text.replace(m[0],'')}catch{}}
@@ -82,7 +84,14 @@ function add(role,text,by){
  if(a){const b=document.createElement('div');b.className='act';
   b.innerHTML=a.type=='post'?`<b>Ready to post on Facebook</b><br>${esc(a.text)}`:`<b>Ready to send on ${esc(a.app)} to ${esc(a.to)}</b><br>${esc(a.text)}`;
   const btn=document.createElement('button');btn.className='p';btn.textContent=((a.type=='post'&&S.api&&S.secret)||(S.md&&a.app=='whatsapp'))?'Send now':(a.type=='post'?'Open Facebook':'Open '+a.app);
-  btn.onclick=()=>run(a);b.append(btn);d.append(b)}
+  let tm,cb,fired=false;
+  const go=()=>{if(fired)return;fired=true;clearTimeout(tm);btn.disabled=true;if(cb)cb.disabled=true;run(a)};
+  btn.onclick=go;b.append(btn);
+  if(S.auto&&!noauto&&canAuto(a)){let n=4;const info=document.createElement('div');info.style.cssText='margin-top:6px;font-size:13px';b.append(info);
+   cb=document.createElement('button');cb.textContent='Cancel';cb.style.marginLeft='8px';
+   cb.onclick=()=>{fired=true;clearTimeout(tm);info.remove();cb.remove();btn.remove()};b.append(cb);
+   const tick=()=>{if(fired)return;if(n<=0){go();info.remove();cb.remove();return}info.textContent='Sending in '+n+'s...';n--;tm=setTimeout(tick,1000)};tick()}
+  d.append(b)}
  $('#log').append(d);$('#log').scrollTop=1e9;return text;
 }
 async function remote(a){
@@ -157,18 +166,18 @@ $('#mode').onclick=()=>{S.mode=S.mode=='fast'?'smart':'fast';dm();save()};
 setInterval(()=>S.nt&&news(true),30*60*1000);
 // Settings
 function drawKeys(){$('#keys').innerHTML=P.map(p=>`<label>${p.name} key</label><input data-k="${p.id}" type="password" autocomplete="off" value="${esc(S.keys[p.id]||'')}"><input data-m="${p.id}" placeholder="Smart model: ${p.smart}" value="${esc(S.models[p.id]||'')}" style="margin-top:4px"><input data-f="${p.id}" placeholder="Fast model: ${p.fast}" value="${esc(S.fmodels[p.id]||'')}" style="margin-top:4px">`).join('')}
-$('#cfg').onclick=()=>{drawKeys();$('#contacts').value=S.contacts;$('#md').value=S.md;$('#mdkey').value=S.mdkey;$('#api').value=S.api;$('#secret').value=S.secret;$('#lang').value=S.lang;$('#speak').checked=S.speak;$('#nt').checked=S.nt;$('#feeds').value=S.feeds;$('#dlg').showModal()};
+$('#cfg').onclick=()=>{drawKeys();$('#contacts').value=S.contacts;$('#md').value=S.md;$('#auto').checked=S.auto;$('#mdkey').value=S.mdkey;$('#api').value=S.api;$('#secret').value=S.secret;$('#lang').value=S.lang;$('#speak').checked=S.speak;$('#nt').checked=S.nt;$('#feeds').value=S.feeds;$('#dlg').showModal()};
 $('#close').onclick=()=>$('#dlg').close();
 $('#clr').onclick=()=>{H=[];save();$('#log').innerHTML='';$('#dlg').close()};
 $('#f').onsubmit=async()=>{
  document.querySelectorAll('[data-k]').forEach(i=>S.keys[i.dataset.k]=i.value.trim());
  document.querySelectorAll('[data-m]').forEach(i=>S.models[i.dataset.m]=i.value.trim());
  document.querySelectorAll('[data-f]').forEach(i=>S.fmodels[i.dataset.f]=i.value.trim());
- S.md=$('#md').value.trim();S.mdkey=$('#mdkey').value.trim();S.api=$('#api').value.trim();S.secret=$('#secret').value.trim();S.contacts=$('#contacts').value;S.lang=$('#lang').value;S.speak=$('#speak').checked;S.nt=$('#nt').checked;S.feeds=$('#feeds').value;
+ S.md=$('#md').value.trim();S.auto=$('#auto').checked;S.mdkey=$('#mdkey').value.trim();S.api=$('#api').value.trim();S.secret=$('#secret').value.trim();S.contacts=$('#contacts').value;S.lang=$('#lang').value;S.speak=$('#speak').checked;S.nt=$('#nt').checked;S.feeds=$('#feeds').value;
  if(S.nt&&Notification.permission=='default')await Notification.requestPermission();
  save();
 };
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
-H.slice(-10).forEach(m=>add(m.role,m.content));
+H.slice(-10).forEach(m=>add(m.role,m.content,null,true));
 if(!H.length)add('assistant','Hello! Add an API key in Settings, then type or tap Mic and talk to me in Bengali or English.');
 </script></body></html>
