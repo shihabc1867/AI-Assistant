@@ -26,3 +26,10 @@ Test mode can message only numbers you add to the allowed list.
 ## Platform rules
 Messenger and WhatsApp free-form text works only within 24 hours after that person messaged your Page/number; otherwise WhatsApp needs an approved template.
 Personal profiles cannot be posted to automatically; posting is to a Facebook Page you manage.
+
+## 5. Auto-reply to WhatsApp messages
+Script properties to add: `MD_URL` (MacroDroid webhook URL), `MD_KEY` (MacroDroid password), `CONTACTS` (lines like `saima apu=8801XXXXXXXXX`; the name must match the name shown in WhatsApp notifications),
+`OWNER_NAME`, `ABOUT_ME` (facts the AI may use), `GEMINI_KEY` and/or `GROQ_KEY`; optional `MAX_PER_HOUR` (default 6).
+Run `setupTrigger` again. In MacroDroid make a second macro: Trigger Notification Received (WhatsApp, any content, prevent multiple triggers);
+Action HTTP Request POST to `<Apps Script /exec URL>?inc=<SECRET>`, content type text/plain, body = notification title, new line, notification text (insert both with the magic-text picker).
+Telegram commands: `/pause`, `/resume`.
